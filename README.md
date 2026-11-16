@@ -1,2 +1,2 @@
 # Glide App
-Mouse smoother program
+Mouse smoother program for Windows
