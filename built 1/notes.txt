@@ -1,0 +1,42 @@
+Được, mình tiếp tục ngay. Phần còn lại: system.rs, autostart.rs, tray.rs, app.rs, rồi build.rs/icon, tài liệu, CI và cập nhật checklist.
+
+Mình chạy tiếp được, nhưng lần này môi trường không có mạng và không có Rust. apt và crates.io đều trả 403, nên mình không chạy được cargo build, cargo test hay clippy. Toàn bộ mã Rust mới viết lần này chưa được compile.
+
+Ngoài ra, mã Win32 phải sửa mà không có bản type-check với windows 0.58 như phiên trước. Vì vậy nên dự kiến còn một vòng sửa lỗi compile trên máy có Rust.
+
+Cột mốc 1: dựng lại dự án
+
+Mình dựng lại cây glide/ từ /mnt/project theo log cũ và vá lại các chỗ log đã sửa. Đó là min_velocity, --trace, cancel-on-click, và mod trace vốn đã có sẵn trong main.rs.
+
+Cột mốc 2: sửa engine (đã kiểm chứng bằng Python)
+
+Mình viết một bản port Python của engine/axis.rs và chạy lại đúng bộ fuzz với cùng seed. Nó tái hiện chính xác con số lỗi trong log (1318 vs 1325.8).
+
+Lỗi thật (test fuzz thứ nhất): khi live-reload đổi mô hình giữa lúc đang cuộn, chuyển động bị kẹt trong mô hình không dùng và không bao giờ dừng. Mình thêm adapt() để chuyển quãng đường còn lại sang mô hình mới. Kết quả: mọi ca đổi mô hình đều đủ đúng 120 đơn vị và mọi case fuzz đều dừng lại.
+Không phải lỗi engine (test fuzz thứ hai): case 13 fail vì friction≈0.99 cần trượt lâu hơn giới hạn 10 s của test. Mình đã tăng giới hạn cho test đó và thêm một test riêng cho friction=0.999.
+Test mới thêm: min_velocity, ma trận đổi mô hình 6×6, đảo chiều sau khi đổi mô hình, và hai test fuzz.
+Cột mốc 3: lớp Win32 và app shell
+hook.rs: đã sửa các lỗi lộ ra khi đọc lại code.
+Hook đang gán t_us = 0 cho mọi sự kiện, nên tăng tốc theo nhịp cuộn không bao giờ hoạt động.
+Shift+wheel cuộn ngang sai chiều.
+Có cấp phát bộ nhớ mỗi lần lăn con lăn.
+Ngoài ra còn thêm hủy quán tính khi click và tự cài lại hook sau khi mở khóa hoặc thức dậy (reinstall()).
+Các file Win32 khác:
+window.rs: nhận diện cửa sổ admin và nhận diện game fullscreen.
+timer.rs: cache tần số quét màn hình.
+tray.rs: sửa submenu Preset, thêm thông báo lỗi cấu hình, icon theo giao diện sáng/tối, Quit thoát vòng lặp.
+autostart.rs, system.rs, app.rs, build.rs (mới), cùng manifest và icon.
+Repo: CI, scripts/check-unsafe.sh (đã chạy pass), README, docs, LICENSE, CHANGELOG, deny.toml.
+Trạng thái checklist
+
+IMPLEMENTATION_PLAN.md dùng 4 mức: [x] đã kiểm chứng, [~] mã đã viết nhưng chưa compile hay chạy trên Windows, [-] làm một phần, [ ] chưa làm. Mình không tick [x] cho mục nào cần Windows thật, và bảng Gate đều chưa được tick. Phase 2 và 4 hiện ở mức [~].
+
+Việc còn lại
+Chạy cargo build, cargo test và cargo clippy trên máy có Rust (hoặc để CI chạy) rồi gửi lỗi cho mình. Mình dự đoán chủ yếu là kiểu trả về của windows 0.58 trong tray.rs, window.rs và timer.rs.
+cargo fmt --check gần như chắc sẽ báo diff vì mình viết tay và không có rustfmt. Chạy cargo fmt một lần là xong.
+Việc cần Windows thật: kiểm tra thủ công (1.5), bảng tương thích app (6.6), đo hiệu năng và bộ nhớ, soak test, BENCHMARKS.md, ký số và phát hành.
+Watchdog hiện chỉ cài lại hook theo sự kiện (mở khóa, thức dậy), chưa có heartbeat định kỳ. Mình để mục đó chưa tick.
+
+Toàn bộ dự án nằm trong glide-source.zip, và các file đã sửa được trình bày bên dưới.
+
+Nếu bạn khôi phục được mạng hoặc toolchain cho môi trường, mình sẽ chạy build và test rồi sửa lỗi compile ngay.

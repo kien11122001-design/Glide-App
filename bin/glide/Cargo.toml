@@ -1,0 +1,43 @@
+[package]
+name = "glide"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+description = "Tiny, memory-safe smooth scrolling for Windows mouse wheels"
+license = "MIT"
+readme = "README.md"
+publish = false
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = { version = "0.8", default-features = false, features = ["parse"] }
+
+[target.'cfg(windows)'.dependencies.windows]
+version = "=0.58.0"
+default-features = false
+features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_Media",
+    "Win32_Security",
+    "Win32_System_Console",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Performance",
+    "Win32_System_Registry",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_Threading",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+]
+
+[target.'cfg(windows)'.build-dependencies]
+# Embeds the DPI-aware / Win10+ manifest and tray icon (build.rs).
+winres = "0.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

@@ -1,0 +1,47 @@
+name: ci
+on: [push, pull_request]
+env:
+  CARGO_TERM_COLOR: always
+jobs:
+  engine-linux:
+    # Pure engine/config/state/animator/cli tests run on any OS.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: "rustfmt, clippy" }
+      - run: ./scripts/check-unsafe.sh
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [x86_64-pc-windows-msvc, aarch64-pc-windows-msvc]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: "${{ matrix.target }}", components: "clippy" }
+      - run: cargo clippy --all-targets --target ${{ matrix.target }} -- -D warnings
+      - name: Test (native target only)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo test --target ${{ matrix.target }}
+      - run: cargo build --release --target ${{ matrix.target }}
+      - name: Binary size gate (<= 500 KB)
+        shell: pwsh
+        run: |
+          $f = Get-Item "target/${{ matrix.target }}/release/glide.exe"
+          "glide.exe: $([math]::Round($f.Length/1KB,1)) KB"
+          if ($f.Length -gt 512000) { throw "binary exceeds 500 KB" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glide-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/glide.exe
+
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2

@@ -1,0 +1,56 @@
+# Glide configuration. Saved changes are applied live (within ~1 second).
+# An invalid file never breaks anything: Glide keeps the last good settings and
+# shows a tray notification. Values outside the allowed range are clamped.
+
+# Base preset: default | snappy | silky | tablet.
+# Any setting you write below overrides the preset.
+preset = "default"
+
+enabled = true                      # master toggle
+step_size = 120                     # px-equivalent per wheel notch (20-1000)
+animation_time_ms = 300             # time to settle after input (50-2000)
+easing = "exponential_smoothing"    # linear | ease_out_quad | ease_out_cubic |
+                                    # ease_out_expo | exponential_smoothing
+reverse_direction = false           # invert scroll direction ("natural" scrolling)
+frame_rate = "auto"                 # "auto" (display refresh rate) or 30-360
+
+[acceleration]
+enabled = true                      # faster wheel spinning scrolls further
+max_multiplier = 4.0                # cap (1.0-10.0)
+window_ms = 120                     # notches closer than this count as "rapid" (20-500)
+
+[momentum]
+enabled = false                     # tablet-style inertia after you stop
+friction = 0.90                     # fraction of speed kept per 1/60 s (0.5-0.999)
+min_velocity = 0.5                  # stop threshold in px/s
+
+[horizontal]
+enabled = true                      # smooth horizontal wheels / tilt
+shift_horizontal = true             # Shift + wheel scrolls horizontally
+
+[input]
+bypass_modifier = "alt"             # hold to scroll normally: none|alt|ctrl|shift|win
+ctrl_passthrough = true             # leave Ctrl + wheel (zoom) untouched
+
+[apps]
+# Never smooth these programs (lowercase exe names).
+exclude = [
+    "cs2.exe",
+    "csgo.exe",
+    "dota2.exe",
+    "eldenring.exe",
+    "gta5.exe",
+    "r5apex.exe",
+    "valorant-win64-shipping.exe",
+    "fortniteclient-win64-shipping.exe",
+]
+include_only = []                   # if not empty: smooth ONLY these programs
+auto_disable_in_fullscreen = true   # pause while a fullscreen game is in front
+
+# Per-app overrides: any setting from the top of this file may be used.
+# [apps.overrides."code.exe"]
+# animation_time_ms = 200
+
+[general]
+autostart = false                   # start with Windows
+toggle_hotkey = "ctrl+alt+s"        # global enable/disable hotkey ("" to disable)
